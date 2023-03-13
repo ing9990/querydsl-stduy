@@ -14,7 +14,6 @@ import javax.persistence.PersistenceContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@Transactional
 @Commit
 class QuerydslApplicationTests {
 
@@ -22,8 +21,10 @@ class QuerydslApplicationTests {
     EntityManager em;
 
     @Test
+    @Transactional
     void contextLoads() {
-        Hello hello = new Hello(1L, "text");
+
+        Hello hello = new Hello(null, "text");
         em.persist(hello);
 
         JPAQueryFactory queryFactory = new JPAQueryFactory(em);
@@ -31,11 +32,11 @@ class QuerydslApplicationTests {
         //QHello qHello = new QHello("h");
         QHello qHello = QHello.hello;
 
-        var result = queryFactory
+        Hello result = queryFactory
                 .selectFrom(qHello)
-                .fetchAll()
-                .fetchFirst();
+                .fetchOne();
 
+        assertThat(result).isNotNull();
         assertThat(result).isEqualTo(hello);
         assertThat(result.getId()).isEqualTo(hello.getId());
     }
