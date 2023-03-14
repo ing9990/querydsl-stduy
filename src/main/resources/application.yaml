@@ -16,6 +16,8 @@ spring:
       hibernate:
         format_sql: true
         show_sql: true
+        # JPQL? ??? Querydsl ?? ??
+        # use_sql_comment: true
 
 logging:
   level:
