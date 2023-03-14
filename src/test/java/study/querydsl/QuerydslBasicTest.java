@@ -1,14 +1,12 @@
 package study.querydsl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.entity.Member;
-import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
@@ -76,6 +74,55 @@ public class QuerydslBasicTest {
         assertThat(findMember).isNotNull();
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
+
+    @DisplayName("다중 조건 쿼리")
+    @Test
+    void search() {
+        Member findMember = queryFactory.selectFrom(member)
+                .where(member.username.eq("member1")
+                        .and(member.age.eq(10))
+                        .and(member.team.name.eq("teamA"))
+                ).fetchOne();
+
+        assertThat(findMember).isNotNull();
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+        assertThat(findMember.getAge()).isEqualTo(10);
+        assertThat(findMember.getTeam().getName()).isEqualTo("teamA");
+    }
+
+    @DisplayName("다중 조건 쿼리2")
+    @Test
+    void search2() {
+        List<Member> findMembers = queryFactory.selectFrom(member)
+                .where(member.username.contains("member")
+                        // goe -> GreaterOrEquals
+                        .and(member.age.goe(10))
+                        // loe -> LowerOrEquals
+                        .and(member.team.members.size().loe(2)))
+                .fetch();
+
+        assertThat(findMembers.size()).isEqualTo(4);
+    }
+
+    @DisplayName("and() 간단하게 사용하기")
+    @Test
+    void search3() {
+        Member findMember = queryFactory.selectFrom(member)
+                .where(
+                        member.username.eq("member1"),
+                        member.age.loe(10),
+                        member.team.name.eq("teamA"),
+                        member.team.members.size().between(0, 50),
+                        null,
+                        null,
+                        null
+                )
+                .fetchOne();
+
+        assertThat(findMember).isNotNull();
+    }
+
+
 }
 
 
