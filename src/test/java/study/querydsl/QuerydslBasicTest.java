@@ -13,7 +13,8 @@ import study.querydsl.entity.Team;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.*;
 import static study.querydsl.entity.QMember.*;
@@ -152,14 +153,13 @@ public class QuerydslBasicTest {
 
     @DisplayName("정렬")
     @Test
-    /*
-     * 회원 정렬 우선순위
-     *  1. 회원 나이 내림차순
-     *  2. 회원 이름 오름차순
-     *  3. 회원 이름이 없으면 마지막으로 출력
-     */
+        /*
+         * 회원 정렬 우선순위
+         *  1. 회원 나이 내림차순
+         *  2. 회원 이름 오름차순
+         *  3. 회원 이름이 없으면 마지막으로 출력
+         */
     void sort() {
-        // 데이터 추가
         em.persist(new Member(null, 100));
         em.persist(new Member("member5", 100));
         em.persist(new Member("member6", 100));
@@ -183,6 +183,37 @@ public class QuerydslBasicTest {
         assertThat(memberNull.getUsername()).isNull();
     }
 
+
+    @DisplayName("페이징")
+    @Test
+    void paging_1() {
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .orderBy(member.username.desc())
+                .offset(1) // 앞에 몇개를 스킵할지 기본값은 0임
+                .limit(2)
+                .fetch();
+
+        assertThat(result.size()).isEqualTo(2);
+    }
+
+
+    @DisplayName("페이징2")
+    @Test
+    void paging_2() {
+        QueryResults<Member> queryResults = queryFactory
+                .selectFrom(member)
+                .orderBy(member.username.desc())
+                .offset(1)
+                .limit(2)
+                .fetchResults();
+
+        assertThat(queryResults).isNotNull();
+        assertThat(queryResults.getTotal()).isEqualTo(4);
+        assertThat(queryResults.getLimit()).isEqualTo(2);
+        assertThat(queryResults.getOffset()).isEqualTo(1);
+        assertThat(queryResults.getResults().size()).isEqualTo(2);
+    }
 
 }
 
